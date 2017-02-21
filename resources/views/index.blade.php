@@ -4,7 +4,7 @@
 
 <h4><?=(isset($search_string) ? "Результат поиска \"$search_string\"": 'Адресная книга')?></h4>
 <?php if (count($people)): ?>
-<table border='1'>
+<table border='1' width=1000>
 <tr>
 <td></td>
 <td>Имя</td>
