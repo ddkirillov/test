@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
+use App\Person;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
 	public function showIndex() {
 		
-		$people = DB::table('people')->get(['id','name','surname','company','position','email','phone']);
+		$people = Person::all();
 		
 		return view('index', compact('people'));
 	}
@@ -20,9 +20,7 @@ class BookController extends Controller
 	}
 	
 	
-	public function showEdit($id) {
-		
-		$person = DB::table('people')->where('id','=',$id)->first(['id','name','surname','company','position','email','phone']);
+	public function showEdit(Person $person) {
 		
 		return view('edit', compact('person'));
 	}
@@ -48,17 +46,21 @@ class BookController extends Controller
 			'phone' => (string)request('phone'),
 		];
 		
-		if (request('id'))
-			DB::table('people')->where('id','=',request('id'))->update($data);
-		else
-			DB::table('people')->insert($data);
+		if (request('id')) {
+			$person = Person::find(request('id'));
+			$person->fill($data);
+			$person->save();
+		} else {
+			Person::create($data);
+		}
 		
 		return redirect('/');
 	}
 	
-	public function doDelete ($id) {
+	public function doDelete (Person $person) {
+
+		$person->delete();
 		
-		DB::table('people')->where('id','=',$id)->delete();	
 		return redirect('/');
 	}
 	
@@ -66,14 +68,9 @@ class BookController extends Controller
 		
 		$this->validate(request(), ['search_string' => 'required']);
 		$search_string = request('search_string');
-		$people = DB::table('people')
-			->where('name', 'LIKE', '%' . $search_string . '%')
-			->orWhere('surname', 'LIKE', '%' . $search_string . '%')
-			->orWhere('company', 'LIKE', '%' . $search_string . '%')
-			->orWhere('position', 'LIKE', '%' . $search_string . '%')
-			->orWhere('email', 'LIKE', '%' . $search_string . '%')
-			->orWhere('phone', 'LIKE', '%' . $search_string . '%')
-			->get();
+		
+		$people = Person::search($search_string);
+		
 		return view('index', compact('people'), ['search_string' => $search_string]);
 	}
 	
